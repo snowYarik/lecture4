@@ -14,7 +14,7 @@ class MyApp extends StatelessWidget {
             body1: TextStyle(
               fontFamily: 'GoogleSans',
               fontWeight: FontWeight.bold,
-              fontSize: 14.0,
+              fontSize: 18.0,
             ),
           )),
       home: WeatherOverviewPage(),

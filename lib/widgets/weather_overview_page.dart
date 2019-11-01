@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:connectivity/connectivity.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:lecture4/models/weather.dart';
@@ -12,20 +15,24 @@ class WeatherOverviewPage extends StatefulWidget {
 class _WeatherOverviewPageState extends State<WeatherOverviewPage>
     with SingleTickerProviderStateMixin {
   final WeatherProvider _provider = WeatherProvider();
-  AnimationController _controller;
+  AnimationController _transitionController;
   Animation<Offset> _tweenOffset;
+  StreamSubscription subscription;
+  ConnectivityResult _connectivityResult;
 
   @override
   void initState() {
-    _controller = AnimationController(
+    _transitionController = AnimationController(
       vsync: this,
       duration: Duration(
-        milliseconds: 300,
+        milliseconds: 500,
       ),
     );
     _tweenOffset =
-        Tween<Offset>(begin: Offset.zero, end: const Offset(0.0, 1.0))
-            .animate(_controller);
+        Tween<Offset>(begin: const Offset(0.0, 1.0), end: Offset.zero)
+            .animate(_transitionController);
+
+    _initConnectionSubscription();
     super.initState();
   }
 
@@ -63,6 +70,21 @@ class _WeatherOverviewPageState extends State<WeatherOverviewPage>
     );
   }
 
+  void _initConnectionSubscription() {
+    subscription = Connectivity()
+        .onConnectivityChanged
+        .listen((ConnectivityResult result) {
+      setState(() => _connectivityResult = result);
+      if (result == ConnectivityResult.none) {
+        _transitionController.forward();
+      } else {
+        if (_transitionController.isCompleted) {
+          _transitionController.reverse();
+        }
+      }
+    });
+  }
+
   Widget _weatherError() {
     return const Center(
       child: Text('Something was wrong'),
@@ -75,12 +97,19 @@ class _WeatherOverviewPageState extends State<WeatherOverviewPage>
       child: SlideTransition(
         position: _tweenOffset,
         child: Container(
-          height: 100.0,
+          color: Colors.grey,
+          height: 40.0,
           child: const Center(
             child: Text('No internet connection'),
           ),
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    subscription.cancel();
+    super.dispose();
   }
 }
