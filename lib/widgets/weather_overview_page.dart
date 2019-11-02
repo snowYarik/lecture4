@@ -18,7 +18,6 @@ class _WeatherOverviewPageState extends State<WeatherOverviewPage>
   AnimationController _transitionController;
   Animation<Offset> _tweenOffset;
   StreamSubscription subscription;
-  ConnectivityResult _connectivityResult;
 
   @override
   void initState() {
@@ -32,8 +31,31 @@ class _WeatherOverviewPageState extends State<WeatherOverviewPage>
         Tween<Offset>(begin: const Offset(0.0, 1.0), end: Offset.zero)
             .animate(_transitionController);
 
-    _initConnectionSubscription();
+    _initConnectionListener();
     super.initState();
+  }
+
+  void _initConnectionListener() {
+    subscription = Connectivity()
+        .onConnectivityChanged
+        .listen((ConnectivityResult result) {
+      _refreshWeather();
+      _animateConnectionPanel(result);
+    });
+  }
+
+  void _animateConnectionPanel(ConnectivityResult result) {
+    if (result == ConnectivityResult.none) {
+      _transitionController.forward();
+    } else {
+      if (_transitionController.isCompleted) {
+        _transitionController.reverse();
+      }
+    }
+  }
+
+  void _refreshWeather() {
+    setState(() {});
   }
 
   @override
@@ -70,24 +92,15 @@ class _WeatherOverviewPageState extends State<WeatherOverviewPage>
     );
   }
 
-  void _initConnectionSubscription() {
-    subscription = Connectivity()
-        .onConnectivityChanged
-        .listen((ConnectivityResult result) {
-      setState(() => _connectivityResult = result);
-      if (result == ConnectivityResult.none) {
-        _transitionController.forward();
-      } else {
-        if (_transitionController.isCompleted) {
-          _transitionController.reverse();
-        }
-      }
-    });
-  }
-
   Widget _weatherError() {
-    return const Center(
-      child: Text('Something was wrong'),
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          const Text('Something was wrong'),
+          Icon(Icons.sentiment_very_dissatisfied),
+        ],
+      ),
     );
   }
 
