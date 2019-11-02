@@ -44,6 +44,10 @@ class _WeatherOverviewPageState extends State<WeatherOverviewPage>
     });
   }
 
+  void _refreshWeather() {
+    setState(() {});
+  }
+
   void _animateConnectionPanel(ConnectivityResult result) {
     if (result == ConnectivityResult.none) {
       _transitionController.forward();
@@ -52,10 +56,6 @@ class _WeatherOverviewPageState extends State<WeatherOverviewPage>
         _transitionController.reverse();
       }
     }
-  }
-
-  void _refreshWeather() {
-    setState(() {});
   }
 
   @override
